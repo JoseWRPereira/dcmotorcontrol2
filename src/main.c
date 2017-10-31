@@ -81,16 +81,26 @@ PF7 :
 void vazio(void){ }
 
 
+void sTempo( void )
+{
+   SETLED( BLUE );
+   putFIFO( readSysTick() );
+   clearSysTick();
+   CLRLED( BLUE );
+}
+
+
 void main( void )
 {
   char tecla;
   unsigned int frequencia, duty; 
   initPLL();
-  initSWLEDS( &vazio, &vazio );
+  initSWLEDS( &vazio, &sTempo );
   initUART0_80MHz_115200bps();
   initPWM( 500, 1 );
-  initTimer( &vazio);
-
+  initTimer( 800000, &vazio);
+  initSysTick( 80000 );
+  clrFIFO();
   
   while( 1 )
   {
@@ -98,6 +108,26 @@ void main( void )
       tecla =  UART_InChar();
     else
       tecla = 0;
+
+    switch( tecla )
+    {
+      case ' ': 
+      case '0':
+		setPWM(   0 ); break;
+      case '1': setPWM( 100 ); break;
+      case '2': setPWM( 200 ); break;
+      case '3': setPWM( 300 ); break; 
+    }
+
+
+    if( readSysTickB() > 100 )
+    {
+      SETLED( RED );
+      clearSysTickB();
+      UART_OutUDec( getFIFO() );
+      UART_OutCRLF();
+      CLRLED( RED );
+    }
   }
 }
 

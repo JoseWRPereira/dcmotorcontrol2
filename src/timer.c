@@ -37,7 +37,7 @@ void IntT2B_Handler( void )
 }
 
 
-void initTimer( void (*fTimer)(void) )
+void initTimer( unsigned long tAquis, void (*fTimer)(void) )
 {
   SYSCTL_RCGCTIMER_R |= SYSCTL_RCGCTIMER_R1;
   // 1: Ensure the timer is disable
@@ -71,7 +71,7 @@ void initTimer( void (*fTimer)(void) )
   // 4: Optionally config.
   TIMER2_SYNC_R |= TIMER_SYNC_SYNCT2_TA;  
   // 5: Load the start value into the INTERVAL LOAD REG
-  TIMER2_TAILR_R = TIME_AQUIS-2;
+  TIMER2_TAILR_R = tAquis-2;
   // 6: If interrupt are required, mask interrupt
   TIMER2_IMR_R = TIMER_IMR_TATOIM | TIMER_IMR_TBTOIM;
   // 7: Enable timer and start counting

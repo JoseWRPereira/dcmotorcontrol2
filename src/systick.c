@@ -1,10 +1,10 @@
 #include "systick.h"
 
-unsigned long stRun = 0;
-
+unsigned long stRunA = 0;
+unsigned long stRunB = 0;
 void initSysTick( unsigned long baseTempo )
 {
-  stRun = 0;
+  stRunA = stRunB = 0;
   NVIC_ST_CTRL_R &= ~(NVIC_ST_CTRL_INTEN|NVIC_ST_CTRL_ENABLE);
   NVIC_ST_RELOAD_R = baseTempo-1;
   NVIC_ST_CURRENT_R = baseTempo;
@@ -14,18 +14,30 @@ void initSysTick( unsigned long baseTempo )
   NVIC_ST_CTRL_R|=(NVIC_ST_CTRL_CLK_SRC|NVIC_ST_CTRL_INTEN|NVIC_ST_CTRL_ENABLE);
 }
 
-unsigned long sysTickRun( unsigned long runTime )
-{
-  if( !stRun )
-    return( stRun = runTime );
-  else
-    return( stRun );
-}
-
 void SysTick_Handler( void )
 {
-  if( stRun )
-    --stRun;
+  ++stRunA;
+  ++stRunB;
 }
+
+void clearSysTick( void )
+{
+  stRunA = 0;
+}
+unsigned long readSysTick( void )
+{
+  return( stRunA );
+}
+
+void clearSysTickB( void )
+{
+  stRunB = 0;
+}
+unsigned long readSysTickB( void )
+{
+  return( stRunB );
+}
+
+
 
 
