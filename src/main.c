@@ -77,28 +77,53 @@ PF7 :
 #include "fifo.h"
 #include "pwm.h"
 #include "timer.h"
+#include "controlador.h"
 
 void vazio(void){ }
+
+long addTcont;
+void addTempo( void )
+{
+  if( ++addTcont > 100 )
+  {
+    SETLED( BLUE );
+    putFIFO( readSysTick() );
+    addTcont = 0;;
+    CLRLED( BLUE );
+  } 
+}
 
 
 void sTempo( void )
 {
    SETLED( BLUE );
    putFIFO( readSysTick() );
+   addTcont = 0;
    clearSysTick();
    CLRLED( BLUE );
 }
 
+void printFIFO( void )
+{
+  SETLED( RED );
+  UART_OutUDec( getFIFO() );
+  UART_OutCRLF();
+  CLRLED( RED );
+} 
 
 void main( void )
 {
   char tecla;
-  unsigned int frequencia, duty; 
+  char fifoOut = 0;
+  long controle;
+  long sp;
+//  unsigned int frequencia, duty; 
   initPLL();
   initSWLEDS( &vazio, &sTempo );
   initUART0_80MHz_115200bps();
   initPWM( 500, 1 );
-  initTimer( 800000, &vazio);
+//  initTimer( 800000, &printSerial);
+  initTimer(800000, &addTempo);
   initSysTick( 80000 );
   clrFIFO();
   
@@ -113,20 +138,50 @@ void main( void )
     {
       case ' ': 
       case '0':
-		setPWM(   0 ); break;
-      case '1': setPWM( 100 ); break;
-      case '2': setPWM( 200 ); break;
-      case '3': setPWM( 300 ); break; 
+		sp = 1; break;
+      case '1': sp = 10 ; 
+		fifoOut = 1;   break;
+      case '2': sp = 20; 
+		fifoOut = 1;   break;
+      case '3': sp = 25; 
+		fifoOut = 1;   break;
+      case '4': sp = 30; 
+		fifoOut = 1;   break;
+      case 'p': fifoOut = 0;   break;
     }
 
 
-    if( readSysTickB() > 100 )
+    controle = controlador( sp, 1000/getFIFO(), 80 );
+    setPWM( controle );
+
+    if( readSysTickB() > 100 && fifoOut )
     {
-      SETLED( RED );
       clearSysTickB();
-      UART_OutUDec( getFIFO() );
+      //printFIFO();  
+
+      SETLED( GREEN );
+      UART_OutUDec( 1000/getFIFO() ); 
+      UART_OutChar( ' ' );
+      UART_OutUDec( controle );
+      UART_OutChar( ' ' );
+      if( Gc & 0x80000000  )
+      {
+        UART_OutChar( '-' );
+        UART_OutUDec( (~Gc)+1 );
+      }
+      else
+        UART_OutUDec( Gc );
+      UART_OutChar( ' ' );
+      if( Gct & 0x80000000  )
+      {
+        UART_OutChar( '-' );
+        UART_OutUDec( (~Gct)+1 );
+      }
+      else
+        UART_OutUDec( Gct );
       UART_OutCRLF();
-      CLRLED( RED );
+      CLRLED( GREEN );
+    
     }
   }
 }

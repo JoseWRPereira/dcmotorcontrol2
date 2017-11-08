@@ -50,12 +50,12 @@ C_SRCS += \
 ../src/fifo.c \
 ../src/pwm.c \
 ../src/timer.c \
+../src/controlador.c \
 ../src/main.c \
 
 #../src/main.c \
 ../src/swleds.c \
 ../src/uart2.c \
-../src/controlador.c
 
 OBJS += \
 ./src/startup_gcc.o \
@@ -66,12 +66,12 @@ OBJS += \
 ./src/fifo.o \
 ./src/pwm.o \
 ./src/timer.o \
+./src/controlador.o \
 ./src/main.o \
 
 #./src/main.o \
 ./src/swleds.o \
 ./src/uart2.o \
-./src/controlador.o
 
 C_DEPS += \
 ./src/startup_gcc.d \
@@ -82,12 +82,12 @@ C_DEPS += \
 ./src/fifo.d \
 ./src/pwm.d \
 ./src/timer.d \
+./src/controlador.d \
 ./src/main.d \
 
 #./src/main.d \
 ./src/swleds.d \
 ./src/uart2.d \
-./src/controlador.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
