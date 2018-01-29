@@ -92,7 +92,7 @@ unsigned long UART_InUDec(void);
 // Output: none
 // Variable format 1-10 digits with no space before or after
 void UART_OutUDec(unsigned long n);
-
+void UART_OutDec(signed long n);
 //---------------------UART_InUHex----------------------------------------
 // Accepts ASCII input in unsigned hexadecimal (base 16) format
 // Input: none

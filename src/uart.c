@@ -219,6 +219,21 @@ void UART_OutUDec(unsigned long n){
   }
   UART_OutChar(n+'0'); /* n is between 0 and 9 */
 }
+//-----------------------UART_OutDec-----------------------
+// Output a 32-bit number in signed decimal format
+// Input: 31-bit number and 1-bit signal to be transferred
+// Variable format with signal and 1-10 digits with no space before or after
+// Função para exibição de número com sinal
+void UART_OutDec( signed long n )
+{
+  if( n & 0x80000000 )
+  {
+    UART_OutChar('-');
+    n = (~n)+1;
+  }
+  UART_OutUDec( n );
+}
+
 
 //---------------------UART_InUHex----------------------------------------
 // Accepts ASCII input in unsigned hexadecimal (base 16) format
