@@ -177,7 +177,7 @@ void main( void )
       //printFIFO();  
 
       SETLED( GREEN );
-      for(char i=0; i<8; i++ )
+      for(char i=0; i<5; i++ )
       {
         UART_OutDec( vprint[i] ); 
         UART_OutChar( ' ' );
