@@ -12,7 +12,8 @@ float Gc, Gct, uEr;
 //{
 //  float limiarGc;
 //  int offset;
-//} 
+//}
+ 
 int klp[10] = {1000,10,20,30,40,50,60,70,80,90};
 
 
@@ -54,10 +55,10 @@ void incrementaErro( void )
       offsetAnt = gct;
       contIndice = 0;
     }
-    if( contIndice > 8 )
+    if( contIndice > 20 )
     {
       contIndice = 0;
-      klp[uer] += gct;
+      klp[uer] += gct/2;
     }
   
     somaOffset -= offset[indice];
@@ -95,15 +96,29 @@ long controlador( long setpoint, long sensor, long max )
   float ksp;		// relacao 100-sp / sp-0
   float u0,u1;
 
+
+/////////////// LPAEt : Calculo de Gc e Gct
   u0 = (float)setpoint/(float)max;
   u1 = (float)sensor/(float)max;
   LPA2v(u0,u1);
 
+///////////////
   if( setpoint > 10 )
+  {
+    if( gct > 50 )
+      vm = 1000;
+    else if( gct < -50 )
+      vm = 0;
+//    else if( gct > 20 )
+//      vm = setpoint + 2*klp[uer];
+//    else if( gct < -20 )
+//       vm = setpoint + klp[uer]/2;
+    else
     if( uer < 10 )
       vm = setpoint + klp[uer];
     else
       vm = setpoint + klp[9];
+  }
   else
     vm = 0;
 //  ksp = (1.0-u0)/(u0);
@@ -118,9 +133,10 @@ long controlador( long setpoint, long sensor, long max )
 //    vm = setpoint + erro; 
 //  }
 
+/////////////// Limitador da VarManipulada
   if( vm < 0 ) vm = 0;
   if( vm > 1000 ) vm = 1000;
-
+/////////////// Valores Tx pela serial
   vprint[0] = setpoint;
   vprint[1] = sensor;
   vprint[2] = vm;
