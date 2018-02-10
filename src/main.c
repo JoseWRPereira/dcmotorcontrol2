@@ -131,6 +131,7 @@ void main( void )
 //  initTimer( 800000, &printSerial);
   initTimer(800000, &addTempo);
   initSysTick( 80000 );
+  initControlador();
   clrFIFO();
   habMotor = 0;
   while( 1 )
@@ -145,7 +146,7 @@ void main( void )
       case ' ': 
       case '0':
       		habMotor = 0;
-		sp = 1; 	break;
+		sp = 0; 	break;
       case '1': sp = 100 ; 
 		fifoOut = 1;   	break;
       case '2': sp = 200; 
@@ -169,6 +170,8 @@ void main( void )
 //	setPWM( 1 );
 
 //    controle = 250;
+    if( controle <= 0 ) 
+      controle = 1;
     setPWM( controle );
 
     if( readSysTickB() > 100 && fifoOut )
@@ -177,7 +180,7 @@ void main( void )
       //printFIFO();  
 
       SETLED( GREEN );
-      for(char i=0; i<5; i++ )
+      for(char i=0; i<6; i++ )
       {
         UART_OutDec( vprint[i] ); 
         UART_OutChar( ' ' );

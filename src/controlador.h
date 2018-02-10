@@ -4,7 +4,9 @@
 
 extern long gc, gct, et, mx;
 
+void initControlador( void );
 long controlador( long setpoint, long sensor, long max );
 void incrementaErro( void );
+
 #endif
 
