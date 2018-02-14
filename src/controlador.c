@@ -3,6 +3,40 @@
 
 extern long vprint[8];
 
+///*******************************************************//
+//********************************************************//
+
+int limiarGit; // grau de inconsistencia Gct > 0
+int limiarGid; // grau de indefinição Gct < 0
+int limiarZonaMorta;
+void setLimiarGIT( int git )
+{
+  limiarGit = git;
+}
+
+void setLimiarGID( int gid )
+{
+  limiarGid = gid;
+}
+
+void setLimiarZonaMorta( int zm )
+{
+  limiarZonaMorta = zm;
+}
+void fmGctRst( void ); //#!@#!@#$#@$
+void initControlador( void )
+{
+  fmGctRst();
+  setLimiarGIT(  100 );
+  setLimiarGID( -100 );
+  setLimiarZonaMorta( 100 );
+  rstTimerLPAEt(500);
+} 
+
+
+
+
+
 
 //*******************************************************//
 //*******************************************Tabela Delta
@@ -12,28 +46,28 @@ int e24M[E24SIZE] = {	107,117,128,143,158,173,194,214,
 			235,260,291,322,352,383,419,460,
 			500,546,602,664,730,802,883,1000};
 
-int  e24[E24SIZE] = {	100,110,120,130,150,160,180,200,
+int e24[E24SIZE] = {	100,110,120,130,150,160,180,200,
 			220,240,270,300,330,360,390,430,
 			470,510,560,620,680,750,820,910};
 
-int e24m[E24SIZE] = {  	  0,107,117,128,143,158,173,194,
+int e24m[E24SIZE] ={  	  0,107,117,128,143,158,173,194,
 			214,235,260,291,322,352,383,419,
 			460,500,546,602,664,730,802,883};
 
-int delta[E24SIZE] = { 	0,  0,  0,  0,  0,  0,  0,  0,
+long delta[E24SIZE] ={ 	0,  0,  0,  0,  0,  0,  0,  0,
 		  	0,  0,  0,  0,  0,  0,  0,  0,
 	 	  	0,  0,  0,  0,  0,  0,  0,  0};
 
-char deltaAlvoMax = E24SIZE-1;
-char deltaAlvo = E24SIZE>>1;;
-char deltaAlvoMin = 0;
+long deltaAlvoMax = E24SIZE-1;
+long deltaAlvo = E24SIZE>>1;;
+long deltaAlvoMin = 0;
 
-int rdDelta( void )
+long rdDelta( void )
 {
   return( delta[deltaAlvo] );
 }
 
-void wrDelta( int d )
+void wrDelta( long d )
 {
   delta[deltaAlvo] = d;
 }
@@ -41,9 +75,8 @@ void wrDelta( int d )
 void buscaDelta( int d )//recebe dado na forma da tabela e24
 { 
  char cont = 0;
- char diff = E24SIZE>>1;
  deltaAlvoMax = E24SIZE-1;
- deltaAlvo = diff;
+ deltaAlvo = E24SIZE>>1;;
  deltaAlvoMin = 0;
  
   while( (deltaAlvoMin != deltaAlvoMax) && (++cont<E24SIZE) )
@@ -70,10 +103,10 @@ int fmGct[FMSIZE];
 long fmGctAcc = 0;
 char fmIndice = 0;
 
-void fmGctAdd( int gct )
+void fmGctAdd( long gct )
 {
   fmGctAcc -= fmGct[fmIndice];
-  fmGctAcc +- gct;
+  fmGctAcc += gct;
   fmGct[fmIndice] = gct;
   fmIndice = (fmIndice+1)%FMSIZE;
 }
@@ -94,16 +127,19 @@ long rdFmGct( void )
 //*******************************************************//
 //********************************************LPAEt timer
 
-long timeLPAEt = 200; 	// 2 segundos
+long timeLPAEt = 500; 	// 2 segundos
 long timeLPAEtrun = 0;
 
 void timerLPAEt( void ) // 10 ms
 {
+  long aux;
   if( ++timeLPAEtrun > timeLPAEt )
   {
     timeLPAEtrun = 0;
-
-    wrDelta( rdDelta() + rdFmGct() );  // Correção Delta
+    timeLPAEt = 100;
+    aux = rdFmGct();
+    if( aux < 100 )
+      wrDelta( rdDelta() + (rdFmGct()+1)/2 );// Correção Delta
 
   }
 }
@@ -122,140 +158,80 @@ void rstTimerLPAEt( long t )
 
 
 //*******************************************************//
-//*******************************************************//
-
-
-
+//**************************************************LPAEt
 
 long gc, gct, uer;
-float Gc, Gct, uEr;
-
-
-//struct klp_T
-//{
-//  float limiarGc;
-//  int offset;
-//}
- 
-int klp[10] = {1000,10,20,30,40,50,60,70,80,90};
-
-
-
-void initControlador( void )
+////////////////////////////////////////////////////////////
+//
+// Parâmetros:
+// u0 : grau de evidencia favorável    [0..1000]
+// u1 : grau de evidencia desfavorável [0..1000]
+// Retorno: 
+//   Através das variáveis gc e gct
+//     gc  : grau de certeza 		[0..1000]
+//     gct : grau de contradição	[0..1000]
+//
+////////////////////////////////////////////////////////////
+void LPAEt( long u0, long u1 )
 {
- 
-/*
-  klp[0].limiarGc = -0.9;
-  klp[0].offset = 1000;
- 
-  klp[1].limiarGc = -0.5;
-  klp[1].offset = 34;
-
-  klp[2].limiarGc = -0.4;
-  klp[2].offset = 14;
-
-  klp[3].limiarGc = 1.0;
-  klp[3].offset = 117;
-*/   
-} 
-
-int offset[8] = {0,0,0,0,0,0,0,0};
-char indice = 0;
-char contIndice = 0;
-int offsetAnt = 0;
-long somaOffset = 0;
-
-long setTempo=10, runTempo=0;
-void incrementaErro( void )
-{
-  if( ++runTempo > setTempo )
-  {
-    runTempo = 0;
-    if( gct == offsetAnt )
-      contIndice++;
-    else
-    {
-      offsetAnt = gct;
-      contIndice = 0;
-    }
-    if( contIndice > 20 )
-    {
-      contIndice = 0;
-      klp[uer] += gct/2;
-    }
-  
-    somaOffset -= offset[indice];
-    somaOffset += offset[indice] = gct;
-    indice = (indice+1)%8;
- }
+  long l0, l1;
+  l0  = 1000-u0;
+  l1  = 1000-u1;
+  gc  = u0 - l1;
+  gct = (u0 + l1 ) - 1000;
+  uer = (u0 + u1)/2;
 }
 
 
 
-
-long LPA2v( float  u0, float u1 )
-{
-  float l0, l1;
-  l0 = 1.0 - u0;
-  l1 = 1.0 - u1;
-
-  Gc  = u0 - l1;
-  Gct = (u0 + l1) - 1.0;
-  gc = Gc * 1000;
-  gct = Gct * 1000;
-  uEr = (Gc+1.0)/2.0;
-  uer = uEr * 10;
-
-}
-
-char estado = 1;
-long setpointAnt = 0, et=0, erro=0;
-char rampa = 0, partida = 0;
-
-
+//*******************************************************//
+//********************************************Controlador
+// Parâmetros:				[rps]
+//   	setpoint: valor de referência;	99.9 -> 999
+//   	sensor: var controlada; 	99.9 -> 999
+//	max: limite máximo da planta; 	99.9 -> 999
+// Retorna:
+// 	Valor do PWM: [0..100] -> [0..1000]
+long setpointAnt = 0; 
 long controlador( long setpoint, long sensor, long max )
 {
-  long vm, err;		// Var manipulada
-  float ksp;		// relacao 100-sp / sp-0
-  float u0,u1;
-
+  long vm; // Variavel manipulada
 
 /////////////// LPAEt : Calculo de Gc e Gct
-  u0 = (float)setpoint/(float)max;
-  u1 = (float)sensor/(float)max;
-  LPA2v(u0,u1);
+  // Para não trabalhar com ponto flutuante,
+  // é adotado o ponto da milhar como virgula da unidade,
+  // por isso a multiplicação por 1000.
+  // Os 500 somados servem para arredondar o resultado.
+  long u0 = ((setpoint*1000)+500)/max;
+  long u1 = ((sensor  *1000)+500)/max;
+  LPAEt(u0, u1);
 
-///////////////
-  if( setpoint > 10 )
+/////////////// Add elemento ao filtro do Gct
+  fmGctAdd( (int)gct );
+/////////////// Busca Delta
+  if( setpoint != setpointAnt )
   {
-    if( gct > 50 )
+    rstTimerLPAEt(800);
+    buscaDelta( (int)u0 );
+    setpointAnt = setpoint;
+  }
+
+
+
+/////////////// Estados da LPAEt
+  if( uer >= limiarZonaMorta )
+  {
+    if( gct > limiarGit )	// região Ligar
       vm = 1000;
-    else if( gct < -50 )
+    else if( gct < limiarGid )	// região Desligar
       vm = 0;
-//    else if( gct > 20 )
-//      vm = setpoint + 2*klp[uer];
-//    else if( gct < -20 )
-//       vm = setpoint + klp[uer]/2;
-    else
-    if( uer < 10 )
-      vm = setpoint + klp[uer];
-    else
-      vm = setpoint + klp[9];
+    else			// região Ativa
+    {
+      vm = u0 + rdDelta();
+    }
   }
   else
     vm = 0;
-//  ksp = (1.0-u0)/(u0);
-//  if( u1 < u0*0.60 || u1 > u0*1.20 )
-//  {
-//    vm = max - (ksp*sensor);
-//    erro = 0;
-//  }
-//  else
-//  {
-//    //vm = max - (ksp*setpoint) + erro ;
-//    vm = setpoint + erro; 
-//  }
-
 /////////////// Limitador da VarManipulada
   if( vm < 0 ) vm = 0;
   if( vm > 1000 ) vm = 1000;
@@ -264,8 +240,8 @@ long controlador( long setpoint, long sensor, long max )
   vprint[1] = sensor;
   vprint[2] = vm;
   vprint[3] = gct;
-  vprint[4] = uEr*1000;
-  vprint[5] = somaOffset/8;
+  vprint[4] = delta[deltaAlvo];
+  vprint[5] = rdFmGct();
   return( vm );
 }
 

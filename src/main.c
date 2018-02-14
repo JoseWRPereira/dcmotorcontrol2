@@ -163,7 +163,7 @@ void main( void )
     }
 
     cT = 10000/getFIFO();
-    controle = controlador( sp, cT, 895 ); 
+    controle = controlador( sp, cT, 880 ); 
 //    if( habMotor )
 //    	setPWM( controle *10);
 //    else
@@ -180,7 +180,7 @@ void main( void )
       //printFIFO();  
 
       SETLED( GREEN );
-      for(char i=0; i<6; i++ )
+      for(char i=0; i<5; i++ )
       {
         UART_OutDec( vprint[i] ); 
         UART_OutChar( ' ' );
