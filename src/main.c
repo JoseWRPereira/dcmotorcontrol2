@@ -86,7 +86,7 @@ long vprint[8] = {0,0,0,0,0,0,0,0};
 void vazio(void){ }
 
 long addTcont;
-void addTempo( void )
+void addTempo( void ) // 10ms
 {
   if( ++addTcont > 100 )
   {
@@ -95,11 +95,12 @@ void addTempo( void )
     addTcont = 0;;
     CLRLED( BLUE );
   }
-  incrementaErro(); 
+
+  timerLPAEt();
 }
 
 
-void sTempo( void )
+void sTempo( void ) // captura tempo entre interrupções
 {
    SETLED( BLUE );
    putFIFO( readSysTick() );
@@ -123,7 +124,6 @@ void main( void )
   long controle;
   long sp,cT;
   unsigned char habMotor;
-//  unsigned int frequencia, duty; 
   initPLL();
   initSWLEDS( &vazio, &sTempo );
   initUART0_80MHz_115200bps();

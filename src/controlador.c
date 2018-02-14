@@ -4,6 +4,129 @@
 extern long vprint[8];
 
 
+//*******************************************************//
+//*******************************************Tabela Delta
+#define E24SIZE 24
+
+int e24M[E24SIZE] = {	107,117,128,143,158,173,194,214,
+			235,260,291,322,352,383,419,460,
+			500,546,602,664,730,802,883,1000};
+
+int  e24[E24SIZE] = {	100,110,120,130,150,160,180,200,
+			220,240,270,300,330,360,390,430,
+			470,510,560,620,680,750,820,910};
+
+int e24m[E24SIZE] = {  	  0,107,117,128,143,158,173,194,
+			214,235,260,291,322,352,383,419,
+			460,500,546,602,664,730,802,883};
+
+int delta[E24SIZE] = { 	0,  0,  0,  0,  0,  0,  0,  0,
+		  	0,  0,  0,  0,  0,  0,  0,  0,
+	 	  	0,  0,  0,  0,  0,  0,  0,  0};
+
+char deltaAlvoMax = E24SIZE-1;
+char deltaAlvo = E24SIZE>>1;;
+char deltaAlvoMin = 0;
+
+int rdDelta( void )
+{
+  return( delta[deltaAlvo] );
+}
+
+void wrDelta( int d )
+{
+  delta[deltaAlvo] = d;
+}
+
+void buscaDelta( int d )//recebe dado na forma da tabela e24
+{ 
+ char cont = 0;
+ char diff = E24SIZE>>1;
+ deltaAlvoMax = E24SIZE-1;
+ deltaAlvo = diff;
+ deltaAlvoMin = 0;
+ 
+  while( (deltaAlvoMin != deltaAlvoMax) && (++cont<E24SIZE) )
+  {
+    if( d < e24M[deltaAlvo] )
+    {
+      deltaAlvoMax = deltaAlvo; 
+      deltaAlvo = (deltaAlvoMax+deltaAlvoMin+1)>>1;;
+    }
+    if( d > e24m[deltaAlvo] )
+    {
+      deltaAlvoMin = deltaAlvo;
+      deltaAlvo = (deltaAlvoMax+deltaAlvoMin+1)>>1;;
+    }    
+  }
+}
+
+
+//*******************************************************//
+//***************************************Filtro Media Gct
+#define FMSIZE 8
+
+int fmGct[FMSIZE];
+long fmGctAcc = 0;
+char fmIndice = 0;
+
+void fmGctAdd( int gct )
+{
+  fmGctAcc -= fmGct[fmIndice];
+  fmGctAcc +- gct;
+  fmGct[fmIndice] = gct;
+  fmIndice = (fmIndice+1)%FMSIZE;
+}
+
+void fmGctRst( void )
+{
+  for( char i = 0; i<FMSIZE; i++ )
+    fmGct[i] = 0;
+  fmGctAcc = 0;
+  fmIndice = 0;
+}
+
+long rdFmGct( void )
+{
+  return( fmGctAcc / FMSIZE );
+}
+
+//*******************************************************//
+//********************************************LPAEt timer
+
+long timeLPAEt = 200; 	// 2 segundos
+long timeLPAEtrun = 0;
+
+void timerLPAEt( void ) // 10 ms
+{
+  if( ++timeLPAEtrun > timeLPAEt )
+  {
+    timeLPAEtrun = 0;
+
+    wrDelta( rdDelta() + rdFmGct() );  // Correção Delta
+
+  }
+}
+
+void setTimerLPAEt( long t )
+{
+  timeLPAEt = t;
+}
+
+void rstTimerLPAEt( long t )
+{
+  timeLPAEt = t;
+  timeLPAEtrun = 0;
+}
+
+
+
+//*******************************************************//
+//*******************************************************//
+
+
+
+
 long gc, gct, uer;
 float Gc, Gct, uEr;
 
