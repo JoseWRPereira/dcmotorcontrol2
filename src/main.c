@@ -143,20 +143,32 @@ void main( void )
 
     switch( tecla )
     {
-      case ' ': 
       case '0':
-      		habMotor = 0;
-		sp = 0; 	break;
-      case '1': sp = 100 ; 
+		sp = 100;
+		fifoOut = 1; 	break;
+      case '1': sp = 200 ; 
 		fifoOut = 1;   	break;
-      case '2': sp = 200; 
+      case '2': sp = 250; 
 		fifoOut = 1;   	break;
-      case '3': sp = 250; 
+      case '3': sp = 300; 
 		fifoOut = 1;   	break;
-      case '4': sp = 300; 
+      case '4': sp = 400; 
 		fifoOut = 1;   	break;
       case '5': sp = 500;
 		fifoOut = 1;	break;
+      case '6': sp = 600; 
+		fifoOut = 1;   	break;
+      case '7': sp = 700; 
+		fifoOut = 1;   	break;
+      case '8': sp = 800;
+		fifoOut = 1;	break;
+
+      case '9': sp = 900;
+		fifoOut = 1;	break;
+
+      case ' ':
+		sp = 0;
+				break; 
       case 'p': fifoOut = 0;   	break;
 
       case 'm': habMotor = 1; 	break;
@@ -164,23 +176,17 @@ void main( void )
 
     cT = 10000/getFIFO();
     controle = controlador( sp, cT, 880 ); 
-//    if( habMotor )
-//    	setPWM( controle *10);
-//    else
-//	setPWM( 1 );
 
-//    controle = 250;
     if( controle <= 0 ) 
       controle = 1;
     setPWM( controle );
 
-    if( readSysTickB() > 100 && fifoOut )
+    if( readSysTickB() > 10 && fifoOut )
     {
       clearSysTickB();
-      //printFIFO();  
 
       SETLED( GREEN );
-      for(char i=0; i<5; i++ )
+      for(char i=0; i<3; i++ )
       {
         UART_OutDec( vprint[i] ); 
         UART_OutChar( ' ' );

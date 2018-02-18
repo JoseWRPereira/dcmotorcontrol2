@@ -23,14 +23,19 @@ void setLimiarZonaMorta( int zm )
 {
   limiarZonaMorta = zm;
 }
-void fmGctRst( void ); //#!@#!@#$#@$
+
+
+
+
+void fmGctRst( void );
 void initControlador( void )
 {
   fmGctRst();
   setLimiarGIT(  100 );
-  setLimiarGID( -100 );
+  setLimiarGID( -50 );
   setLimiarZonaMorta( 100 );
-  rstTimerLPAEt(500);
+  setTimerLPAEt(50);
+  rstTimerLPAEt(300);
 } 
 
 
@@ -42,17 +47,18 @@ void initControlador( void )
 //*******************************************Tabela Delta
 #define E24SIZE 24
 
-int e24M[E24SIZE] = {	107,117,128,143,158,173,194,214,
-			235,260,291,322,352,383,419,460,
-			500,546,602,664,730,802,883,1000};
+int e24M[E24SIZE] = {	105,115,125,140,155,170,190,210,
+			230,254,284,314,334,374,409,449,
+			489,534,589,649,713,783,863,1000};
 
 int e24[E24SIZE] = {	100,110,120,130,150,160,180,200,
 			220,240,270,300,330,360,390,430,
 			470,510,560,620,680,750,820,910};
 
-int e24m[E24SIZE] ={  	  0,107,117,128,143,158,173,194,
-			214,235,260,291,322,352,383,419,
-			460,500,546,602,664,730,802,883};
+int e24m[E24SIZE] ={  	  0,105,115,125,140,155,170,190,
+			210,230,254,284,314,334,374,409,
+			449,489,534,589,649,713,783,863};
+
 
 long delta[E24SIZE] ={ 	0,  0,  0,  0,  0,  0,  0,  0,
 		  	0,  0,  0,  0,  0,  0,  0,  0,
@@ -127,28 +133,40 @@ long rdFmGct( void )
 //*******************************************************//
 //********************************************LPAEt timer
 
-long timeLPAEt = 500; 	// 2 segundos
+long timeLPAEt = 300; 		// 3 segundos
+long timeLPAEtAtualiza = 100; 	// 1 segundos
 long timeLPAEtrun = 0;
-
-void timerLPAEt( void ) // 10 ms
+void timerLPAEt( void ) 	// 10 ms
 {
   long aux;
   if( ++timeLPAEtrun > timeLPAEt )
   {
     timeLPAEtrun = 0;
-    timeLPAEt = 100;
+    timeLPAEt = timeLPAEtAtualiza;
     aux = rdFmGct();
     if( aux < 100 )
       wrDelta( rdDelta() + (rdFmGct()+1)/2 );// Correção Delta
-
   }
 }
-
+////////////////////////////////////////
+// Parametro:
+// 	t: tempo de atualização da variável delta
+//	Escala: 1 -> 10 ms
+////////////////////////////////////////
 void setTimerLPAEt( long t )
 {
-  timeLPAEt = t;
+  timeLPAEtAtualiza = t;
 }
 
+
+////////////////////////////////////////
+// Permite alterar o tempo de atualização do primeiro ciclo, 
+// possibilitando uma atualização apenas após a acomodação
+// do sinal.
+// Parametro:
+// 	t: tempo de acomodação do sinal. 
+// 	Escala: 1 -> 10 ms
+////////////////////////////////////////
 void rstTimerLPAEt( long t )
 {
   timeLPAEt = t;
@@ -211,7 +229,8 @@ long controlador( long setpoint, long sensor, long max )
 /////////////// Busca Delta
   if( setpoint != setpointAnt )
   {
-    rstTimerLPAEt(800);
+    setTimerLPAEt(50);
+    rstTimerLPAEt(300);
     buscaDelta( (int)u0 );
     setpointAnt = setpoint;
   }
@@ -227,7 +246,7 @@ long controlador( long setpoint, long sensor, long max )
       vm = 0;
     else			// região Ativa
     {
-      vm = u0 + rdDelta();
+     vm = u0 + rdDelta();
     }
   }
   else
